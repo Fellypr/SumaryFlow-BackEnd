@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using SumaryYoutubeBackend.Models;
 
 namespace SumaryYoutubeBackend.Models
 {
@@ -16,6 +17,8 @@ namespace SumaryYoutubeBackend.Models
         public string TextGemini { get; set; }
         public string MindMap { get; set; }
         public DateTime DateCreateSumary { get; set; } = DateTime.UtcNow;
+        public int IdUser { get; set; }
+        public AuthUser AuthUser { get; set;}
 
 
     }

@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using SumaryYoutubeBackend.dbContext;
@@ -11,9 +12,11 @@ using SumaryYoutubeBackend.dbContext;
 namespace SumaryYoutubeBackend.Migrations
 {
     [DbContext(typeof(SumaryYoutubeDbContext))]
-    partial class SumaryYoutubeDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260309180900_AddUserTable")]
+    partial class AddUserTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -59,9 +62,6 @@ namespace SumaryYoutubeBackend.Migrations
                     b.Property<DateTime>("DateCreateSumary")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<int>("IdUser")
-                        .HasColumnType("integer");
-
                     b.Property<string>("MindMap")
                         .HasColumnType("text");
 
@@ -88,11 +88,9 @@ namespace SumaryYoutubeBackend.Migrations
 
             modelBuilder.Entity("SumaryYoutubeBackend.Models.VideoSummary", b =>
                 {
-                    b.HasOne("SumaryYoutubeBackend.Models.AuthUser", "AuthUser")
+                    b.HasOne("SumaryYoutubeBackend.Models.AuthUser", null)
                         .WithMany("VideosUser")
                         .HasForeignKey("AuthUserId");
-
-                    b.Navigation("AuthUser");
                 });
 
             modelBuilder.Entity("SumaryYoutubeBackend.Models.AuthUser", b =>

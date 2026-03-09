@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using SumaryYoutubeBackend.dbContext;
@@ -11,9 +12,11 @@ using SumaryYoutubeBackend.dbContext;
 namespace SumaryYoutubeBackend.Migrations
 {
     [DbContext(typeof(SumaryYoutubeDbContext))]
-    partial class SumaryYoutubeDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260309194147_AddUserIdToVideoSummary")]
+    partial class AddUserIdToVideoSummary
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
