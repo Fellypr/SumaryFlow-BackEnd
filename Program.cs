@@ -1,16 +1,20 @@
 using Microsoft.EntityFrameworkCore;
 using SumaryYoutubeBackend.dbContext;
 using SumaryYoutubeBackend.interfaces;
+using SumaryYoutubeBackend.Interfaces;
 using SumaryYoutubeBackend.Services;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddHttpClient<ITranscriptService,TranscriptServices>();
 builder.Services.AddHttpClient<IGeminiService, GeminiService>();
+builder.Services.AddScoped<IJwtServices, JwtServices>();
+builder.Services.AddScoped<IRegisterUserServices, RegisterUserServices>();
+builder.Services.AddScoped<IAuthenticationServices, AuthenticationServices>();
 
 builder.Services.AddDbContext<SumaryYoutubeDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -27,7 +31,6 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
