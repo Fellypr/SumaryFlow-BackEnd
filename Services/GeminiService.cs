@@ -4,22 +4,27 @@ using System.Text.Json.Nodes;
 using SumaryYoutubeBackend.interfaces;
 using SumaryYoutubeBackend.DTOs;
 using SumaryYoutubeBackend.Models;
+using SumaryYoutubeBackend.dbContext;
+using Microsoft.EntityFrameworkCore;
+using System.Linq;
 namespace SumaryYoutubeBackend.Services
 {
-    public class GeminiService : IGeminiService
+    public class GeminiService : IGeminiService, IGetGeminiServiceUserAsync
     {
         private readonly HttpClient _httpClient;
         private readonly string _apikey;
+        private readonly SumaryYoutubeDbContext _context;
 
-        public GeminiService(HttpClient httpClient, IConfiguration configuration)
+        public GeminiService(HttpClient httpClient, IConfiguration configuration, SumaryYoutubeDbContext context)
         {
             _httpClient = httpClient;
             _apikey = configuration["ExternalServices:GeminiApiKey"];
+            _context = context;
         }
 
         public async Task<GeminiResult> GenerateSumaryAsync(string transcript)
         {
-            
+
             var url = $"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={_apikey}";
             var prompt = "Analise a seguinte transcrição de vídeo e retorne um resumo estruturado em tópicos explicativos." + $"No final, gere um código Mermaid.js para um mapa mental do conteúdo. " + $"Transcrição:\n\n{transcript}";
 
@@ -63,6 +68,33 @@ namespace SumaryYoutubeBackend.Services
 
             return responseSumary;
 
+        }
+        
+        public async Task<GeminiResult> GetGeminiServiceUserAsync(IGetGeminiServiceUserDto dto)
+        {
+            var query = _context.VideoSummaries.AsQueryable();
+
+            query = query.Where(v => v.IdUser == dto.IdUser);
+
+            if (!string.IsNullOrWhiteSpace(dto.Title))
+            {
+                query = query.Where(v => v.Title == dto.Title);
+            }
+
+            var videoSummary = await query
+                .OrderByDescending(v => v.DateCreateSumary)
+                .FirstOrDefaultAsync();
+
+            if (videoSummary == null)
+            {
+                throw new Exception($"Nenhum resumo encontrado com este título: {dto.Title}");
+            }
+
+            return new GeminiResult
+            {
+                Summary = videoSummary.TextGemini,
+                MindMap = videoSummary.MindMap
+            };
         }
     }
 }

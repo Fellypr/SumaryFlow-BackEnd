@@ -2,6 +2,8 @@ using Microsoft.AspNetCore.Mvc;
 using SumaryYoutubeBackend.DTOs;
 using SumaryYoutubeBackend.Interfaces;
 using SumaryYoutubeBackend.Services;
+using SumaryYoutubeBackend.dbContext;
+using Microsoft.EntityFrameworkCore;
 
 namespace SumaryYoutubeBackend.Controllers
 {
@@ -12,15 +14,17 @@ namespace SumaryYoutubeBackend.Controllers
         private readonly IRegisterUserServices _registerUserServices;
         private readonly IAuthenticationServices _authenticationServices;
         private readonly IJwtServices _jwtServices;
+        private readonly SumaryYoutubeDbContext _context;
 
         public AuthController(
             IRegisterUserServices registerUserServices,
             IAuthenticationServices authenticationServices,
-            IJwtServices jwtServices)
+            IJwtServices jwtServices, SumaryYoutubeDbContext context)
         {
             _registerUserServices = registerUserServices;
             _authenticationServices = authenticationServices;
             _jwtServices = jwtServices;
+            _context = context;
         }
 
         [HttpPost("register")]
@@ -36,6 +40,14 @@ namespace SumaryYoutubeBackend.Controllers
                 return BadRequest("Os campos username e password devem ser preenchidos.");
             }
 
+            var userExist = await _context.AuthUsers.FirstOrDefaultAsync(v => v.Username == dto.UserName);
+
+            if(userExist != null)
+            {
+                return Conflict($"Usuario com o nome de {dto.UserName} já existe");
+            }
+
+
             try
             {
                 var user = await _registerUserServices.RegisterUserAsync(dto);
@@ -49,7 +61,7 @@ namespace SumaryYoutubeBackend.Controllers
                         id = user.Id,
                         username = user.Username
                     },
-                    message = $"Seja Bem Vindo {user.Username}"
+                    message = $"Conta criada com sucesso .Seja Bem Vindo {user.Username}"
                 });
             }
             catch (Exception ex)
