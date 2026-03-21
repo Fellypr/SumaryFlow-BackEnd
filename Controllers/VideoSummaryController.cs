@@ -39,7 +39,11 @@ namespace SumaryYoutubeBackend.Controllers
                 if (userId == null) return Unauthorized("Usuário não autenticado");
                 var userIdInt = int.Parse(userId);
 
-                var videoId = url.VideoUrl;
+                var videoId = ExtractVideoId(url.VideoUrl);
+                if (string.IsNullOrWhiteSpace(videoId))
+                {
+                    return BadRequest("URL do vídeo inválida.");
+                }
 
                 var existing = await _context.VideoSummaries.FirstOrDefaultAsync(v => v.CodeVideoId == videoId && v.IdUser == userIdInt);
                 if (existing != null) return Ok(existing);
@@ -97,6 +101,45 @@ namespace SumaryYoutubeBackend.Controllers
                     detail = ex.Message
                 });
             }
+        }
+
+        private static string ExtractVideoId(string videoUrlOrId)
+        {
+            if (string.IsNullOrWhiteSpace(videoUrlOrId))
+            {
+                return string.Empty;
+            }
+
+            var input = videoUrlOrId.Trim();
+            if (!Uri.TryCreate(input, UriKind.Absolute, out var uri))
+            {
+                return input;
+            }
+
+            var host = uri.Host.ToLowerInvariant();
+
+            if (host.Contains("youtu.be"))
+            {
+                return uri.AbsolutePath.Trim('/').Split('/').FirstOrDefault() ?? string.Empty;
+            }
+
+            if (host.Contains("youtube.com"))
+            {
+                if (uri.AbsolutePath.StartsWith("/watch", StringComparison.OrdinalIgnoreCase))
+                {
+                    var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
+                    return query["v"] ?? string.Empty;
+                }
+
+                if (uri.AbsolutePath.StartsWith("/shorts/", StringComparison.OrdinalIgnoreCase) ||
+                    uri.AbsolutePath.StartsWith("/embed/", StringComparison.OrdinalIgnoreCase))
+                {
+                    var segments = uri.AbsolutePath.Trim('/').Split('/');
+                    return segments.Length >= 2 ? segments[1] : string.Empty;
+                }
+            }
+
+            return input;
         }
 
     }
