@@ -9,7 +9,7 @@ namespace SumaryYoutubeBackend.interfaces
 
     public interface IGetGeminiServiceUserAsync
     {
-        Task<GeminiResult> GetGeminiServiceUserAsync(IGetGeminiServiceUserDto dto );
+        Task<List<GeminiResult>> GetGeminiServiceUserAsync(IGetGeminiServiceUserDto dto);
     }
 
 }

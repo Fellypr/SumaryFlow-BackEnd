@@ -70,31 +70,34 @@ namespace SumaryYoutubeBackend.Services
 
         }
         
-        public async Task<GeminiResult> GetGeminiServiceUserAsync(IGetGeminiServiceUserDto dto)
+        public async Task<List<GeminiResult>> GetGeminiServiceUserAsync(IGetGeminiServiceUserDto dto)
         {
             var query = _context.VideoSummaries.AsQueryable();
 
             query = query.Where(v => v.IdUser == dto.IdUser);
-
-            if (!string.IsNullOrWhiteSpace(dto.Title))
+            
+            var termo = dto.Title?.Trim();
+            if (!string.IsNullOrWhiteSpace(termo))
             {
-                query = query.Where(v => v.Title == dto.Title);
+                query = query.Where(v => EF.Functions.ILike(v.Title, $"%{termo}%"));
             }
 
             var videoSummary = await query
                 .OrderByDescending(v => v.DateCreateSumary)
-                .FirstOrDefaultAsync();
+                .ToListAsync();
 
-            if (videoSummary == null)
+            if (!videoSummary.Any())
             {
                 throw new Exception($"Nenhum resumo encontrado com este título: {dto.Title}");
             }
 
-            return new GeminiResult
+            return videoSummary.Select(v => new GeminiResult
             {
-                Summary = videoSummary.TextGemini,
-                MindMap = videoSummary.MindMap
-            };
+                Summary = v.TextGemini,
+                MindMap = v.MindMap,
+                DateCreateSumary = v.DateCreateSumary,
+                Title = v.Title ?? "Não informado"
+            }).ToList();
         }
     }
 }

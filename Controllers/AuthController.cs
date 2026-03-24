@@ -99,7 +99,7 @@ namespace SumaryYoutubeBackend.Controllers
                         id = user.Id,
                         username = user.Username
                     },
-                    message = $"Login realizado com sucesso. Bem-vindo, {user.Username}!"
+                    message = $"Bem-vindo de volta, {user.Username}!"
                 });
             }
             catch (Exception ex)

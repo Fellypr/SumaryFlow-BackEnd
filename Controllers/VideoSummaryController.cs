@@ -7,6 +7,7 @@ using YoutubeExplode;
 using YoutubeExplode.Common;
 using System.Security.Claims;
 using SumaryYoutubeBackend.DTOs;
+using Microsoft.Extensions.Logging;
 
 namespace SumaryYoutubeBackend.Controllers
 {
@@ -18,16 +19,19 @@ namespace SumaryYoutubeBackend.Controllers
         private readonly IGeminiService _geminiService;
         private readonly SumaryYoutubeDbContext _context;
         private readonly IGetGeminiServiceUserAsync _getGeminiServiceUserAsync;
+        private readonly ILogger<VideoSummaryController> _logger;
         public VideoSummaryController(
             ITranscriptService transcriptService,
             IGeminiService geminiService,
             SumaryYoutubeDbContext context,
-            IGetGeminiServiceUserAsync getGeminiServiceUserAsync)
+            IGetGeminiServiceUserAsync getGeminiServiceUserAsync,
+            ILogger<VideoSummaryController> logger)
         {
             _transcriptService = transcriptService;
             _geminiService = geminiService;
             _context = context;
             _getGeminiServiceUserAsync = getGeminiServiceUserAsync;
+            _logger = logger;
         }
 
         [HttpPost("summarize")]
