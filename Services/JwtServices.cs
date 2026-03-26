@@ -21,7 +21,7 @@ namespace SumaryYoutubeBackend.Services
             _configuration = configuration;
         }
 
-        public string GenerateTokenAuth(AuthUser user)
+        public string GenerateTokenAuth(AuthUser user, bool rememberMe = false)
         {
             if (user == null)
             {
@@ -42,11 +42,15 @@ namespace SumaryYoutubeBackend.Services
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
             };
 
+            var expires = rememberMe
+                ? DateTime.UtcNow.AddDays(30)
+                : DateTime.UtcNow.AddHours(2);
+
             var token = new JwtSecurityToken(
                 issuer: issuer,
                 audience: audience,
                 claims: claims,
-                expires: DateTime.UtcNow.AddHours(2),
+                expires: expires,
                 signingCredentials: credentials
             );
 

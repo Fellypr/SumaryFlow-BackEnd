@@ -3,6 +3,6 @@ namespace SumaryYoutubeBackend.Services
 {
     public interface IJwtServices
     {
-        string GenerateTokenAuth(AuthUser user);
+        string GenerateTokenAuth(AuthUser user, bool rememberMe = false);
     }
 }

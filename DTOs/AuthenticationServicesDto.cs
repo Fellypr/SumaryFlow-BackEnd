@@ -11,5 +11,6 @@ namespace SumaryYoutubeBackend.DTOs
         [MaxLength(10, ErrorMessage = "a senha nao pode ser maior que 10 caracteres")]
         [MinLength(3, ErrorMessage = "a senha nao pode ser menor que 3 caracteres")]
         public string Password { get; set; }
+        public bool RememberMe { get; set; }
     }
 }

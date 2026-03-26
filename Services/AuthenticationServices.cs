@@ -27,7 +27,7 @@ namespace SumaryYoutubeBackend.Services
                 throw new Exception("Senha incorreta");
             }
 
-            var token = _jwtServices.GenerateTokenAuth(userExists);
+            var token = _jwtServices.GenerateTokenAuth(userExists, authenticationServicesDto.RememberMe);
             return new AuthUser
             {
                 Id = userExists.Id,
