@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using SumaryYoutubeBackend.dbContext;
 using SumaryYoutubeBackend.interfaces;
@@ -20,18 +21,22 @@ namespace SumaryYoutubeBackend.Controllers
         private readonly SumaryYoutubeDbContext _context;
         private readonly IGetGeminiServiceUserAsync _getGeminiServiceUserAsync;
         private readonly ILogger<VideoSummaryController> _logger;
+        private readonly IWebHostEnvironment _environment;
+
         public VideoSummaryController(
             ITranscriptService transcriptService,
             IGeminiService geminiService,
             SumaryYoutubeDbContext context,
             IGetGeminiServiceUserAsync getGeminiServiceUserAsync,
-            ILogger<VideoSummaryController> logger)
+            ILogger<VideoSummaryController> logger,
+            IWebHostEnvironment environment)
         {
             _transcriptService = transcriptService;
             _geminiService = geminiService;
             _context = context;
             _getGeminiServiceUserAsync = getGeminiServiceUserAsync;
             _logger = logger;
+            _environment = environment;
         }
 
         [HttpPost("summarize")]
@@ -77,11 +82,7 @@ namespace SumaryYoutubeBackend.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, new
-                {
-                    message = "Ocorreu um erro ao gerar o resumo do vídeo.",
-                    detail = ex.Message
-                });
+                return ServerError("Ocorreu um erro ao gerar o resumo do vídeo.", ex, nameof(Summarize));
             }
         }
         [HttpGet("get-gemini-service-user")]
@@ -99,12 +100,30 @@ namespace SumaryYoutubeBackend.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, new
-                {
-                    message = "Ocorreu um erro ao buscar o resumo do vídeo.",
-                    detail = ex.Message
-                });
+                return ServerError("Ocorreu um erro ao buscar o resumo do vídeo.", ex, nameof(GetGeminiServiceUser));
             }
+        }
+
+        private IActionResult ServerError(string userMessage, Exception ex, string actionName)
+        {
+            _logger.LogError(ex, "Falha em {Action}", actionName);
+
+            var innerErrors = new List<object>();
+            for (var inner = ex.InnerException; inner != null; inner = inner.InnerException)
+            {
+                innerErrors.Add(new { type = inner.GetType().FullName, message = inner.Message });
+            }
+
+            return StatusCode(StatusCodes.Status500InternalServerError, new
+            {
+                message = userMessage,
+                status = StatusCodes.Status500InternalServerError,
+                traceId = HttpContext.TraceIdentifier,
+                exceptionType = ex.GetType().FullName,
+                detail = ex.Message,
+                innerErrors,
+                stackTrace = _environment.IsDevelopment() ? ex.StackTrace : null
+            });
         }
 
         private static string ExtractVideoId(string videoUrlOrId)

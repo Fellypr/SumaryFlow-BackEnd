@@ -25,13 +25,27 @@ namespace SumaryYoutubeBackend.Services
         public async Task<GeminiResult> GenerateSumaryAsync(string transcript)
         {
 
-            var url = $"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={_apikey}";
-            var prompt = "Analise a seguinte transcrição de vídeo e retorne um resumo estruturado em tópicos explicativos." + $"No final, gere um código Mermaid.js para um mapa mental do conteúdo. " + $"Transcrição:\n\n{transcript}";
+            var url = $"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key={_apikey}";
+            var prompt = "Aja como um especialista em documentação técnica e analise a transcrição de vídeo abaixo. Gere um resumo estruturado seguindo estritamente estas regras de formatação:\n\n" +
+            "- Seções Principais: Use ### seguido de um título curto e direto para cada mudança de assunto (módulos).\n" +
+            "- Itens de Detalhe: Dentro de cada seção, use * para listar os pontos chave.\n" +
+            "- Padrão de Conteúdo: Cada item deve seguir o formato **Termo ou Conceito:** Descrição detalhada e clara. (Regra estrita: Não crie um glossário com respostas curtas. Desenvolva a explicação de cada item com 4 a 5 frases completas, explicando o contexto, o 'porquê' e incluindo os exemplos práticos mencionados no vídeo).\n" +
+            "- Hierarquia: Certifique-se de que a lógica siga uma linha do tempo de aprendizado (do básico ao avançado).\n" +
+            "- Restrição: Não adicione introduções como 'Aqui está o resumo' ou conclusões. Retorne apenas o conteúdo formatado em Markdown.\n\n" +
+            "No final, gere um código Mermaid.js para um mapa mental do conteúdo encapsulado entre ```mermaid e ```.\n\n" +
+            $"Transcrição:\n\n{transcript}";
 
             var requestBody = new
             {
                 contents = new[]{
                     new {parts = new[] {new {text = prompt}}}
+                },
+                generationConfig = new
+                {
+                    maxOutputTokens = 2000,
+                    temperature = 0.7,
+                    topP = 0.95,
+                    topK = 40
                 }
 
             };
@@ -42,7 +56,7 @@ namespace SumaryYoutubeBackend.Services
             if (!response.IsSuccessStatusCode)
             {
                 var detailsError = await response.Content.ReadAsStringAsync();
-                throw new Exception("Erro ao chama Gemini:" + response.ReasonPhrase);
+                throw new Exception($"Erro ao chama Gemini: {detailsError} StatusCode: {response.ReasonPhrase} status: {response.StatusCode}");
             }
 
             var jsonResponse = await response.Content.ReadAsStringAsync();
@@ -69,13 +83,13 @@ namespace SumaryYoutubeBackend.Services
             return responseSumary;
 
         }
-        
+
         public async Task<List<GeminiResult>> GetGeminiServiceUserAsync(IGetGeminiServiceUserDto dto)
         {
             var query = _context.VideoSummaries.AsQueryable();
 
             query = query.Where(v => v.IdUser == dto.IdUser);
-            
+
             var termo = dto.Title?.Trim();
             if (!string.IsNullOrWhiteSpace(termo))
             {
