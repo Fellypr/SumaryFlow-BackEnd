@@ -6,5 +6,6 @@ namespace SumaryYoutubeBackend.Models
         public string MindMap { get; set; }
         public DateTime DateCreateSumary { get; set; }
         public string Title { get; set; }
+        public string ThumbnaiUrl { get; set; }
     }
 }
