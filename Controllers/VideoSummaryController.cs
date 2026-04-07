@@ -70,6 +70,8 @@ namespace SumaryYoutubeBackend.Controllers
                     Title = metadata.Title,
                     ThumbnaiUrl = metadata.Thumbnails.GetWithHighestResolution().Url,
                     Transcript = transcript,
+                    Duration = metadata.Duration ?? TimeSpan.Zero,
+                    Vizualization = metadata.Engagement.ViewCount,
                     TextGemini = aiResponse.Summary,
                     MindMap = aiResponse.MindMap,
                     DateCreateSumary = DateTime.UtcNow,

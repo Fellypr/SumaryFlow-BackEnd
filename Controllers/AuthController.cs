@@ -37,14 +37,14 @@ namespace SumaryYoutubeBackend.Controllers
 
             if (string.IsNullOrWhiteSpace(dto.UserName) || string.IsNullOrWhiteSpace(dto.Password))
             {
-                return BadRequest("Os campos username e password devem ser preenchidos.");
+                return BadRequest("Os campos username e senha devem ser preenchidos.");
             }
 
             var userExist = await _context.AuthUsers.FirstOrDefaultAsync(v => v.Username == dto.UserName);
 
             if(userExist != null)
             {
-                return Conflict($"Usuario com o nome de {dto.UserName} já existe");
+                return Conflict($"Usuário com o nome de {dto.UserName} já existe");
             }
 
 
@@ -61,7 +61,7 @@ namespace SumaryYoutubeBackend.Controllers
                         id = user.Id,
                         username = user.Username
                     },
-                    message = $"Conta criada com sucesso .Seja Bem Vindo {user.Username}"
+                    message = $"Conta criada com sucesso. Seja bem vindo {user.Username}"
                 });
             }
             catch (Exception ex)
@@ -84,7 +84,7 @@ namespace SumaryYoutubeBackend.Controllers
 
             if (string.IsNullOrWhiteSpace(dto.Username) || string.IsNullOrWhiteSpace(dto.Password))
             {
-                return BadRequest("Os campos username e password devem ser preenchidos.");
+                return BadRequest("Os campos username e senha devem ser preenchidos.");
             }
 
             try

@@ -15,6 +15,8 @@ namespace SumaryYoutubeBackend.Models
         public string Transcript { get; set; }
         [Required]
         public string TextGemini { get; set; }
+        public TimeSpan Duration {get; set;}
+        public long Vizualization {get; set;} 
         public string MindMap { get; set; }
         public DateTime DateCreateSumary { get; set; } = DateTime.UtcNow;
         public int IdUser { get; set; }

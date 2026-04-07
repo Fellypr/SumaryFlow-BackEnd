@@ -7,5 +7,7 @@ namespace SumaryYoutubeBackend.Models
         public DateTime DateCreateSumary { get; set; }
         public string Title { get; set; }
         public string ThumbnaiUrl { get; set; }
+        public TimeSpan Duration {get; set;}
+        public long Vizualization {get; set;}
     }
 }

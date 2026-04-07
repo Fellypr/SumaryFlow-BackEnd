@@ -111,7 +111,9 @@ namespace SumaryYoutubeBackend.Services
                 MindMap = v.MindMap,
                 DateCreateSumary = v.DateCreateSumary,
                 Title = v.Title ?? "Não informado",
-                ThumbnaiUrl = v.ThumbnaiUrl ?? "Não informado"
+                ThumbnaiUrl = v.ThumbnaiUrl ?? "Não informado",
+                Duration = v.Duration,
+                Vizualization = v.Vizualization
             }).ToList();
         }
     }
