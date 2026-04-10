@@ -9,6 +9,7 @@ using YoutubeExplode.Common;
 using System.Security.Claims;
 using SumaryYoutubeBackend.DTOs;
 using Microsoft.Extensions.Logging;
+using SumaryYoutubeBackend.Exceptions;
 
 namespace SumaryYoutubeBackend.Controllers
 {
@@ -22,6 +23,7 @@ namespace SumaryYoutubeBackend.Controllers
         private readonly IGetGeminiServiceUserAsync _getGeminiServiceUserAsync;
         private readonly ILogger<VideoSummaryController> _logger;
         private readonly IWebHostEnvironment _environment;
+        private readonly IConfiguration _configuration;
 
         public VideoSummaryController(
             ITranscriptService transcriptService,
@@ -29,7 +31,8 @@ namespace SumaryYoutubeBackend.Controllers
             SumaryYoutubeDbContext context,
             IGetGeminiServiceUserAsync getGeminiServiceUserAsync,
             ILogger<VideoSummaryController> logger,
-            IWebHostEnvironment environment)
+            IWebHostEnvironment environment,
+            IConfiguration configuration)
         {
             _transcriptService = transcriptService;
             _geminiService = geminiService;
@@ -37,6 +40,7 @@ namespace SumaryYoutubeBackend.Controllers
             _getGeminiServiceUserAsync = getGeminiServiceUserAsync;
             _logger = logger;
             _environment = environment;
+            _configuration = configuration;
         }
 
         [HttpPost("summarize")]
@@ -48,21 +52,48 @@ namespace SumaryYoutubeBackend.Controllers
                 if (userId == null) return Unauthorized("Usuário não autenticado");
                 var userIdInt = int.Parse(userId);
 
+                if (url == null || string.IsNullOrWhiteSpace(url.VideoUrl))
+                {
+                    return ApiError(StatusCodes.Status400BadRequest, "INVALID_REQUEST", "Informe a URL do vídeo do YouTube.");
+                }
+
                 var videoId = ExtractVideoId(url.VideoUrl);
                 if (string.IsNullOrWhiteSpace(videoId))
                 {
-                    return BadRequest("URL do vídeo inválida.");
+                    return ApiError(StatusCodes.Status400BadRequest, "INVALID_URL", "URL do vídeo inválida.");
                 }
 
                 var existing = await _context.VideoSummaries.FirstOrDefaultAsync(v => v.CodeVideoId == videoId && v.IdUser == userIdInt);
                 if (existing != null) return Ok(existing);
 
-                var transcript = await _transcriptService.GetStrinVideoAsync(videoId);
-
-                var aiResponse = await _geminiService.GenerateSumaryAsync(transcript);
-
                 var youtube = new YoutubeClient();
                 var metadata = await youtube.Videos.GetAsync(videoId);
+
+                var maxMinutes = _configuration.GetValue<int?>("VideoRules:MaxMinutes") ?? 20;
+                if (metadata.Duration.HasValue && metadata.Duration.Value.TotalMinutes > maxMinutes)
+                {
+                    return ApiError(
+                        StatusCodes.Status422UnprocessableEntity,
+                        "VIDEO_TOO_LONG",
+                        $"O vídeo excede o limite de {maxMinutes} minutos.",
+                        new
+                        {
+                            maxMinutes,
+                            videoMinutes = Math.Round(metadata.Duration.Value.TotalMinutes, 2)
+                        });
+                }
+
+                string transcript;
+                try
+                {
+                    transcript = await _transcriptService.GetStrinVideoAsync(videoId);
+                }
+                catch (TranscriptServiceException tex)
+                {
+                    return ApiError(tex.StatusCode, tex.Code, tex.Message);
+                }
+
+                var aiResponse = await _geminiService.GenerateSumaryAsync(transcript);
 
                 var newsumary = new VideoSummary
                 {
@@ -126,6 +157,16 @@ namespace SumaryYoutubeBackend.Controllers
                 innerErrors,
                 stackTrace = _environment.IsDevelopment() ? ex.StackTrace : null
             });
+        }
+
+        private IActionResult ApiError(int statusCode, string code, string message, object? extra = null)
+        {
+            if (extra == null)
+            {
+                return StatusCode(statusCode, new { code, message, status = statusCode, traceId = HttpContext.TraceIdentifier });
+            }
+
+            return StatusCode(statusCode, new { code, message, status = statusCode, traceId = HttpContext.TraceIdentifier, extra });
         }
 
         private static string ExtractVideoId(string videoUrlOrId)
