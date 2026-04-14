@@ -32,7 +32,33 @@ namespace SumaryYoutubeBackend.Services
             "- Padrão de Conteúdo: Cada item deve seguir o formato **Termo ou Conceito:** Descrição detalhada e clara. (Regra estrita: Não crie um glossário com respostas curtas. Desenvolva a explicação de cada item com 4 a 5 frases completas, explicando o contexto, o 'porquê' e incluindo os exemplos práticos mencionados no vídeo).\n" +
             "- Hierarquia: Certifique-se de que a lógica siga uma linha do tempo de aprendizado (do básico ao avançado).\n" +
             "- Restrição: Não adicione introduções como 'Aqui está o resumo' ou conclusões. Retorne apenas o conteúdo formatado em Markdown.\n\n" +
-            "No final, gere um código Mermaid.js para um mapa mental do conteúdo encapsulado entre ```mermaid e ```.\n\n" +
+            "No final da resposta, gere um diagrama Mermaid.js no formato graph TD seguindo EXATAMENTE estas regras:\n\n" +
+            "1. Use obrigatoriamente:\n" +
+            "   graph TD\n\n" +
+            "2. Estrutura:\n" +
+            "   ID[Texto] --> ID2[Texto]\n" +
+            "   ID --> ID3{Texto}\n\n" +
+            "3. Regras obrigatórias:\n" +
+            "- Cada nó deve ter um ID único (A, B, C, D...)\n" +
+            "- Use [] para textos normais\n" +
+            "- Use {} para decisões/categorias\n" +
+            "- Cada linha deve conter apenas UMA relação\n" +
+            "- NÃO use parágrafos\n" +
+            "- NÃO use markdown (*, -, #)\n" +
+            "- NÃO use explicações fora do diagrama\n" +
+            "- NÃO repita nós\n" +
+            "- Use textos curtos (máximo 8 palavras por nó)\n\n" +
+            "4. Organização:\n" +
+            "- Comece com um nó raiz (A)\n" +
+            "- Expanda em níveis hierárquicos\n" +
+            "- Agrupe conceitos relacionados\n\n" +
+            "5. O diagrama deve ser o ÚLTIMO conteúdo da resposta\n\n" +
+            "6. Retorne EXATAMENTE neste formato:\n\n" +
+            "```mermaid\n" +
+            "graph TD\n" +
+            "    A[...]\n" +
+            "    A --> B[...]\n" +
+            "```\n\n" +
             $"Transcrição:\n\n{transcript}";
 
             var requestBody = new
