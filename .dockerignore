@@ -1,0 +1,13 @@
+bin/
+obj/
+.git/
+.gitignore
+.cursor/
+.codex
+Dockerfile
+README.md
+*.user
+*.suo
+*.db
+*.log
+appsettings.Development.json
