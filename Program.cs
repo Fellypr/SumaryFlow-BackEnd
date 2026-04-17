@@ -47,9 +47,14 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
     {
-        policy.WithOrigins("http://localhost:3000", "https://sumary-flow-cliente.vercel.app/")
+        policy.WithOrigins(
+            "http://localhost:3000",
+            "https://sumary-flow-cliente.vercel.app",
+            "https://sumary-flow-cliente-8ig65xl7y-fellype15kenned-4944s-projects.vercel.app"
+            )
               .AllowAnyMethod()
-              .AllowAnyHeader();
+              .AllowAnyHeader()
+              .AllowCredentials();
     });
 });
 
