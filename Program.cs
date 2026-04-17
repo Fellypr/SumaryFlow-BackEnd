@@ -22,7 +22,8 @@ builder.Services.AddHttpClient<IGetGeminiServiceUserAsync, GeminiService>();
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
-        var jwtKey = builder.Configuration["Jwt:Key"] ?? "CARACTERESPECIALPARAJWT1234567890";
+        var jwtKey = builder.Configuration["Jwt:Key"] 
+            ?? throw new Exception("Jwt:Key não está configurada.");
         var jwtIssuer = builder.Configuration["Jwt:Issuer"] ?? "SumaryYoutubeBackend";
         var jwtAudience = builder.Configuration["Jwt:Audience"] ?? "SumaryYoutubeFrontend";
 
@@ -46,7 +47,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
     {
-        policy.WithOrigins("http://localhost:3000", "http://127.0.0.1:3000")
+        policy.WithOrigins("http://localhost:3000", "https://sumary-flow-cliente.vercel.app/")
               .AllowAnyMethod()
               .AllowAnyHeader();
     });
