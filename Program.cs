@@ -1,13 +1,11 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
-using System.Net;
 using System.Text;
 using SumaryYoutubeBackend.dbContext;
 using SumaryYoutubeBackend.interfaces;
 using SumaryYoutubeBackend.Interfaces;
 using SumaryYoutubeBackend.Services;
-using YoutubeExplode;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -15,21 +13,6 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-builder.Services.AddScoped<YoutubeClient>(_ =>
-{
-    var cookiesValue = builder.Configuration["YoutubeSettings:Cookies"];
-    if (string.IsNullOrWhiteSpace(cookiesValue))
-        return new YoutubeClient();
-
-    var cookies = cookiesValue
-        .Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-        .Select(cookiePart => cookiePart.Split('=', 2, StringSplitOptions.TrimEntries))
-        .Where(parts => parts.Length == 2 && !string.IsNullOrWhiteSpace(parts[0]))
-        .Select(parts => new Cookie(parts[0], parts[1], "/", ".youtube.com"))
-        .ToList();
-
-    return cookies.Count > 0 ? new YoutubeClient(cookies) : new YoutubeClient();
-});
 builder.Services.AddHttpClient<ITranscriptService,TranscriptServices>();
 builder.Services.AddHttpClient<IGeminiService, GeminiService>();
 builder.Services.AddScoped<IJwtServices, JwtServices>();

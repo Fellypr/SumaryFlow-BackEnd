@@ -24,7 +24,6 @@ namespace SumaryYoutubeBackend.Controllers
         private readonly ILogger<VideoSummaryController> _logger;
         private readonly IWebHostEnvironment _environment;
         private readonly IConfiguration _configuration;
-        private readonly YoutubeClient _youtubeClient;
 
         public VideoSummaryController(
             ITranscriptService transcriptService,
@@ -33,8 +32,7 @@ namespace SumaryYoutubeBackend.Controllers
             IGetGeminiServiceUserAsync getGeminiServiceUserAsync,
             ILogger<VideoSummaryController> logger,
             IWebHostEnvironment environment,
-            IConfiguration configuration,
-            YoutubeClient youtubeClient)
+            IConfiguration configuration)
         {
             _transcriptService = transcriptService;
             _geminiService = geminiService;
@@ -43,7 +41,6 @@ namespace SumaryYoutubeBackend.Controllers
             _logger = logger;
             _environment = environment;
             _configuration = configuration;
-            _youtubeClient = youtubeClient;
         }
 
         [HttpPost("summarize")]
@@ -68,8 +65,9 @@ namespace SumaryYoutubeBackend.Controllers
 
                 var existing = await _context.VideoSummaries.FirstOrDefaultAsync(v => v.CodeVideoId == videoId && v.IdUser == userIdInt);
                 if (existing != null) return Ok(existing);
-                
-                var metadata = await _youtubeClient.Videos.GetAsync(videoId);
+
+                var youtube = new YoutubeClient();
+                var metadata = await youtube.Videos.GetAsync(videoId);
 
                 var maxMinutes = _configuration.GetValue<int?>("VideoRules:MaxMinutes") ?? 20;
                 if (metadata.Duration.HasValue && metadata.Duration.Value.TotalMinutes > maxMinutes)
