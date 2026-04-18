@@ -15,20 +15,37 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-builder.Services.AddScoped<YoutubeClient>(_ =>
+builder.Services.AddHttpClient("YoutubeExplodeBrowserClient", client =>
 {
-    var cookiesValue = builder.Configuration["YoutubeSettings:Cookies"];
-    if (string.IsNullOrWhiteSpace(cookiesValue))
-        return new YoutubeClient();
+    client.Timeout = TimeSpan.FromSeconds(30);
+    client.DefaultRequestHeaders.TryAddWithoutValidation(
+        "User-Agent",
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36");
+})
+.ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
+{
+    AllowAutoRedirect = true,
+    AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate | DecompressionMethods.Brotli,
+    UseCookies = false
+});
+builder.Services.AddScoped<YoutubeClient>(sp =>
+{
+    var configuration = sp.GetRequiredService<IConfiguration>();
+    var httpClientFactory = sp.GetRequiredService<IHttpClientFactory>();
+    var httpClient = httpClientFactory.CreateClient("YoutubeExplodeBrowserClient");
 
-    var cookies = cookiesValue
-        .Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-        .Select(cookiePart => cookiePart.Split('=', 2, StringSplitOptions.TrimEntries))
-        .Where(parts => parts.Length == 2 && !string.IsNullOrWhiteSpace(parts[0]))
-        .Select(parts => new Cookie(parts[0], parts[1], "/", ".youtube.com"))
-        .ToList();
+    var cookieString = configuration["YoutubeSettings:Cookies"];
+    if (string.IsNullOrWhiteSpace(cookieString))
+    {
+        cookieString = configuration["YOUTUBE_COOKIES"];
+    }
 
-    return cookies.Count > 0 ? new YoutubeClient(cookies) : new YoutubeClient();
+    if (!string.IsNullOrWhiteSpace(cookieString))
+    {
+        httpClient.DefaultRequestHeaders.TryAddWithoutValidation("Cookie", cookieString);
+    }
+
+    return new YoutubeClient(httpClient);
 });
 builder.Services.AddHttpClient<ITranscriptService,TranscriptServices>();
 builder.Services.AddHttpClient<IGeminiService, GeminiService>();
