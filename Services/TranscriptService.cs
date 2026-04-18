@@ -12,7 +12,7 @@ namespace SumaryYoutubeBackend.Services
         public TranscriptServices(HttpClient httpClient, IConfiguration configuration)
         {
             _httpClient = httpClient;
-            _pythonApiUrl = configuration["ExternalServices:TranscriptServiceUrl"] ?? "http://127.0.0.1:8000/transcript/";
+            _pythonApiUrl = configuration["ExternalServices:TranscriptServiceUrl"] ?? "https://summarytranscription.onrender.com/transcript/";
         }
         public async Task<string> GetStrinVideoAsync(string videoId)
         {
