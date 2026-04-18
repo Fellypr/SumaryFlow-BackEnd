@@ -70,7 +70,6 @@ namespace SumaryYoutubeBackend.Controllers
                 if (existing != null) return Ok(existing);
                 
                 var metadata = await _youtubeClient.Videos.GetAsync(videoId);
-                Console.WriteLine($"Sucesso: {metadata.Title}");
 
                 var maxMinutes = _configuration.GetValue<int?>("VideoRules:MaxMinutes") ?? 20;
                 if (metadata.Duration.HasValue && metadata.Duration.Value.TotalMinutes > maxMinutes)
